@@ -6,9 +6,11 @@ import com.management.skills.model.PeopleSkills;
 import com.management.skills.model.dto.SkillDto;
 import com.management.skills.model.dto.SkillLevelDto;
 import com.management.skills.service.PeopleSkillsService;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,16 +49,25 @@ public class PeopleSkillsController {
   }
 
   @PostMapping(path = ADD_NEW_SKILLS_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
-  public List<SkillsEntity> addNewSkill(@PathVariable(SKILL) String skill) {
+  public List<SkillsEntity> addNewSkill(@PathVariable(SKILL) String skill,
+      HttpServletResponse httpResponse) throws IOException {
 
-    return peopleSkillsService.addNewSkill(skill);
+    List<SkillsEntity> skillsEntityList = peopleSkillsService.addNewSkill(skill);
+
+    if(skillsEntityList.size() == 0) {
+      log.error("Skills list not found");
+      httpResponse.sendError(404);
+      return null; // Error page to be added
+    }
+    return skillsEntityList;
 
   }
 
   @PostMapping(path = ADD_PEOPLE_SKILL_ENDPOINT,  consumes={MediaType.APPLICATION_JSON_VALUE},
       produces = MediaType.APPLICATION_JSON_VALUE)
   public String addPeopleSkill(@PathVariable(USER_ID) Long userId,
-      @RequestBody SkillLevelDto skillLevelDto) {
+      @RequestBody SkillLevelDto skillLevelDto,
+      HttpServletResponse httpResponse) throws IOException  {
 
     Optional<PeopleSkillsEntity> entity =
         peopleSkillsService.addSkillToPeople(userId, skillLevelDto);
@@ -64,7 +75,9 @@ public class PeopleSkillsController {
         if(entity.isPresent()) {
           return "Row saved";
         } else {
-          return "Row not saved";
+          log.error("PeopleSkillsEntity not found");
+          httpResponse.sendError(404);
+          return null; // Error page to be added
         }
   }
 
@@ -92,7 +105,8 @@ public class PeopleSkillsController {
   @PutMapping(path = UPDATE_SKILL_LEVEL_ENDPOINT, consumes={MediaType.APPLICATION_JSON_VALUE},
       produces = MediaType.APPLICATION_JSON_VALUE)
   public String updateSkillLevel(@PathVariable(USER_ID) Long userId,
-      @RequestBody SkillLevelDto skillLevelDto) {
+      @RequestBody SkillLevelDto skillLevelDto,
+      HttpServletResponse httpResponse) throws IOException {
 
     Optional<PeopleSkillsEntity> entity = peopleSkillsService
         .updateSkillLevel(userId, skillLevelDto);
@@ -100,7 +114,9 @@ public class PeopleSkillsController {
     if(entity.isPresent()) {
       return "Record updated";
     } else {
-      return "Record not updated";
+      log.error("PeopleSkillsEntity not updated");
+      httpResponse.sendError(404);
+      return null; // Error page to be added
     }
   }
 

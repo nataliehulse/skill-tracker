@@ -29,6 +29,7 @@ import com.management.skills.model.dto.SkillDto;
 import com.management.skills.model.dto.SkillLevelDto;
 import com.management.skills.model.Skills;
 import com.management.skills.service.PeopleSkillsService;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -92,6 +93,19 @@ public class PeopleSkillsControllerTests {
   }
 
   @Test
+  public void test_addNewSkillReturns404()
+      throws Exception {
+
+    when(peopleSkillsService.addNewSkill("Postgres"))
+        .thenReturn(new ArrayList<>());
+
+    mockMvc
+        .perform(MockMvcRequestBuilders.post(ADD_NEW_SKILLS_ENDPOINT, "Postgres"))
+        .andExpect(handler().methodName("addNewSkill"))
+        .andExpect(status().is4xxClientError());
+  }
+
+  @Test
   public void test_addPeopleSkill()
       throws Exception {
 
@@ -126,8 +140,7 @@ public class PeopleSkillsControllerTests {
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .content(validSkillsDtoRequestAsJson()))
         .andExpect(handler().methodName("addPeopleSkill"))
-        .andExpect(status().isOk())
-        .andExpect(content().string(is(equalTo("Row not saved"))));
+        .andExpect(status().is4xxClientError());
   }
 
   @Test
@@ -265,8 +278,7 @@ public class PeopleSkillsControllerTests {
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .content(validSkillLevelDtoRequestAsJson()))
         .andExpect(handler().methodName("updateSkillLevel"))
-        .andExpect(status().isOk())
-        .andExpect(content().string(is(equalTo("Record not updated"))));
+        .andExpect(status().is4xxClientError());
   }
 
   @Test
